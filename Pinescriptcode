@@ -1,0 +1,40 @@
+//@version=5
+indicator("Weekly MACD Strategy", overlay=true)
+
+// Custom crossover function
+crossover(x, y) =>
+    x[1] < y[1] and x > y
+
+// Custom crossunder function
+crossunder(x, y) =>
+    x[1] > y[1] and x < y
+
+// Calculate Weekly MACD
+[macdLine, signalLine, _] = ta.macd(close, 12, 26, 9)
+
+// Calculate Daily MACD
+[dailyMacdLine, dailySignalLine, _] = ta.macd(close, 12, 26, 9)
+
+// Condition for Weekly MACD Buy Signal
+weeklyBuySignal = crossover(macdLine, signalLine)
+
+// Condition for Daily MACD Buy Signal
+dailyBuySignal = crossover(dailyMacdLine, dailySignalLine)
+
+// Condition for Stop Loss Hit
+stopLossHit = crossunder(dailyMacdLine, dailySignalLine)
+
+// Entry and Exit Logic
+var bool inTrade = na
+if (weeklyBuySignal)
+    inTrade := true
+
+if (stopLossHit)
+    inTrade := false
+
+// Plotting
+bgcolor(inTrade ? color.new(color.green, 90) : color.new(color.red, 90))
+
+plotshape(weeklyBuySignal and dailyBuySignal ? true : na, style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small)
+plotshape(stopLossHit ? true : na, style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small)
+
